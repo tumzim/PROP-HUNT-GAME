@@ -1,0 +1,13 @@
+cors = mechanism that allows a webpage to request restricted resources on
+another domain - request from another domain will be blocked by browser - cors not enabled all will be blocked
+
+CORS = passes additional header -  server side sends request back 
+
+
+
+
+cookie-parser:
+
+1) user-auth bearer token generated - need place to store bearer token 
+2) user makes request to api - token passed back to server and user can be authenticated 
+------user doesnt need to keep logging in 
