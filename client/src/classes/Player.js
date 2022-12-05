@@ -24,9 +24,9 @@ export default class Player extends Phaser.Physics.Arcade.Image {
         // //camera can follow player
         // this.scene.cameras.main.startFollow(this);
 
-        if (this.mainPlayer) {
+        // if (this.mainPlayer) {
             this.scene.cameras.main.startFollow(this);
-        }
+        // }
 
     }
 

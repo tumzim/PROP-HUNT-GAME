@@ -27,12 +27,12 @@ io.on("connection", (socket) => {
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
     // player disconnected
-    socket.on('disconnect', () => {
-        console.log('player disconnected from our game', socket.id);
-        delete players[socket.id];
-        io.emit('playerDisconnect', socket.id)
-        console.log("players left: ", players)
-    });
+    // socket.on('disconnect', () => {
+    //     console.log('player disconnected from our game', socket.id);
+    //     delete players[socket.id];
+    //     io.emit('playerDisconnect', socket.id)
+    //     console.log("players left: ", players)
+    // });
 
 })
 

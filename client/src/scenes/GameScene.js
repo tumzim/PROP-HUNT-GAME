@@ -11,44 +11,39 @@ export default class GameScene extends Phaser.Scene {
         this.scene.launch('Ui')
         this.score = 0
         this.scaleSize = 1
-        
 
-        //socket
-        this.socket = io("http://localhost:3000");
-        this.socketEvents();
+
     }
 
 
     socketEvents() {
         //spawn player game objects
-        this.socket.on('currentPlayers', (players) => {
-            console.log("currentPlayers", players);
-            Object.keys(players).forEach((id) => {
-                // console.log("************socket", this.socket.id)
-                if (players[id].playerId === this.socket.id) {
-                    this.createPlayer(players[id])
-                } else {
-                    this.createPlayer(players[id]);
-                }
-            })
-        })
+        // this.socket.on('currentPlayers', (players) => {
+        //     console.log("currentPlayers", players);
+        //     Object.keys(players).forEach((id) => {
+        //         // console.log("************socket", this.socket.id)
+        //         if (players[id].playerId === this.socket.id) {
+        //             this.createPlayer(players[id])
+        //         } else {
+        //             this.createPlayer(players[id]);
+        //         }
+        //     })
+        // })
 
-        this.socket.on('newPlayer', (playerInfo) => {
-            this.createPlayer(playerInfo, false);
-            console.log("playerInfo", playerInfo)
-        });
+        // this.socket.on('newPlayer', (playerInfo) => {
+        //     this.createPlayer(playerInfo, false);
+        //     console.log("playerInfo", playerInfo)
+        // });
 
-        this.socket.on('playerDisconnect', (playerId) => {
-            console.log("disconnect************", playerId)
-            this.otherPlayers.getChildren().forEach((otherPlayer) => {
-                console.log("*********otherplayer",otherPlayer)
-                if (playerId === otherPlayer.playerId) {
-                    otherPlayer.destroy();
-                }
-            });
-        });
-
-
+        // this.socket.on('playerDisconnect', (playerId) => {
+        //     console.log("disconnect************", playerId)
+        //     this.otherPlayers.getChildren().forEach((otherPlayer) => {
+        //         console.log("*********otherplayer", otherPlayer)
+        //         if (playerId === otherPlayer.playerId) {
+        //             otherPlayer.destroy();
+        //         }
+        //     });
+        // });
 
 
     }
@@ -57,11 +52,13 @@ export default class GameScene extends Phaser.Scene {
     create() {
         this.createMap();
         //this is used to store var in scene and be able to referecne it in scene
+    
+        // this.otherPlayers = this.physics.add.group();
 
-
-        //create chest
-        this.createGroups();
-
+        //socket
+        this.socket = io("http://localhost:3000");
+        this.socketEvents();
+    
         //allow for keyboard inputs 
         this.createInput();
         // this.createPlayer();
@@ -72,27 +69,52 @@ export default class GameScene extends Phaser.Scene {
     update() {
         if (this.player) this.player.update(this.cursors);
         //emit player movement to server
-     
-    }
-
-    createPlayer(playerInfo, mainPlayer) {
-        console.log("*************player info in create", playerInfo)
-        this.player = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id, mainPlayer)
-        this.addCollisions();
-        if (mainPlayer) {
-            this.player = this.player;
-        } else {
-            this.otherPlayers.add(this.player);
-            console.log("****OTHER PLAYERS********",this.otherPlayers)
-
-        }
-    }
-
-    createGroups() {
-        //create other users group
-        this.otherPlayers = this.physics.add.group();
 
     }
+
+    // addPlayer1(playerInfo) {
+    //     this.player = this.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
+    //     if (playerInfo.team === 'blue') {
+    //         this.ship.setTint(0x0000ff);
+    //     } else {
+    //         this.ship.setTint(0xff0000);
+    //     }
+    //     this.ship.setDrag(100);
+    //     this.ship.setAngularDrag(100);
+    //     this.ship.setMaxVelocity(200);
+    // }
+
+    // addPlayer(){ 
+    //     this.player = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id, mainPlayer)
+    //     this.addCollisions();
+    // }
+
+
+    // addOtherPlayers(playerInfo) {
+    //     const otherPlayer = this.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
+    //     if (playerInfo.team === 'blue') {
+    //         otherPlayer.setTint(0x0000ff);
+    //     } else {
+    //         otherPlayer.setTint(0xff0000);
+    //     }
+    //     otherPlayer.playerId = playerInfo.playerId;
+    //     this.otherPlayers.add(otherPlayer);
+    //     //console.log("other Players", this.otherPlayers)
+    // }
+
+    // createPlayer(playerInfo, mainPlayer) {
+
+    //     this.player = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id, mainPlayer)
+    //     this.addCollisions();
+    //     if (!mainPlayer) {
+    //         this.otherPlayers.add(this.player);
+    //         console.log("****OTHER PLAYERS********", this.otherPlayers)
+    //     } else {
+    //         this.player = this.player;
+    //     }
+    // }
+
+
 
 
     createInput() {
@@ -107,6 +129,7 @@ export default class GameScene extends Phaser.Scene {
 
 
     createMap() {
+        console.log("are we reachinghere?")
         //create tile map 
         // this.add.image(0, 0, "background")
         this.levelMap = this.make.tilemap({ key: 'map' });

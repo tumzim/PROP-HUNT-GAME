@@ -1,5 +1,5 @@
 import * as Phaser from 'phaser';
-import io from 'socket.io-client'
+
 import scenes from './scenes/scenes';
 
 
