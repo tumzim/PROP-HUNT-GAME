@@ -26,9 +26,10 @@ export default class GameScene extends Phaser.Scene {
             Object.keys(players).forEach((id) => {
                 // console.log("************socket", this.socket.id)
                 if (players[id].playerId === this.socket.id) {
-                    this.createPlayer(players[id])
+                    this.createPlayer(players[id],true)
                 } else {
-                    this.createPlayer(players[id]);
+                    this.createPlayer(players[id],false);
+                    console.log("players[id]", players[id])
                 }
             })
         })
@@ -83,7 +84,7 @@ export default class GameScene extends Phaser.Scene {
             this.player = this.player;
         } else {
             this.otherPlayers.add(this.player);
-            console.log("****OTHER PLAYERS********",this.otherPlayers)
+            console.log("****OTHER",this.otherPlayers)
 
         }
     }
