@@ -1,11 +1,11 @@
 import * as Phaser from 'phaser';
 
 export default class Player extends Phaser.Physics.Arcade.Image {
-    constructor(scene, x, y, key, frame, id, mainPlayer) {
+    constructor(scene, x, y, key, frame, id) {
         super(scene, x, y, key, frame)
         this.scene = scene;
-        this.mainPlayer = mainPlayer;
-        this.id = id
+
+        this.playerId = id
         this.velocity = 100; //velocity of moving player
 
         //enable physics 

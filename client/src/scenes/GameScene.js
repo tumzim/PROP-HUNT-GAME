@@ -16,103 +16,100 @@ export default class GameScene extends Phaser.Scene {
     }
 
 
-    socketEvents() {
-        //spawn player game objects
-        // this.socket.on('currentPlayers', (players) => {
-        //     console.log("currentPlayers", players);
-        //     Object.keys(players).forEach((id) => {
-        //         // console.log("************socket", this.socket.id)
-        //         if (players[id].playerId === this.socket.id) {
-        //             this.createPlayer(players[id])
-        //         } else {
-        //             this.createPlayer(players[id]);
-        //         }
-        //     })
-        // })
+    create() {
+        //socket
+        this.socket = io("http://localhost:3000");
 
-        // this.socket.on('newPlayer', (playerInfo) => {
-        //     this.createPlayer(playerInfo, false);
-        //     console.log("playerInfo", playerInfo)
-        // });
 
-        // this.socket.on('playerDisconnect', (playerId) => {
-        //     console.log("disconnect************", playerId)
+        //other players physics group
+        this.otherPlayers = this.physics.add.group();
+
+
+
+
+        //new person joins --- spawns 
+        this.socket.on('currentPlayers', (players) => {
+            console.log("currentPlayers", players);
+            Object.keys(players).forEach((id) => {
+                // console.log("************socket", this.socket.id)
+                if (players[id].playerId === this.socket.id) {
+                    this.addPlayer(players[id])
+                } else {
+                    this.addOtherPlayers(players[id])
+                }
+            })
+        })
+
+        this.socket.on('newPlayer', (playerInfo) => {
+            this.addOtherPlayers(playerInfo);
+        });
+
+        // //displays other info 
+        // this.socket.on('playerMoved', (playerInfo) => {
         //     this.otherPlayers.getChildren().forEach((otherPlayer) => {
-        //         console.log("*********otherplayer", otherPlayer)
-        //         if (playerId === otherPlayer.playerId) {
-        //             otherPlayer.destroy();
+        //         if (playerInfo.playerId === otherPlayer.playerId) {
+        //             otherPlayer.setPosition(playerInfo.x, playerInfo.y);
         //         }
         //     });
         // });
 
+        // // player disconnected
+        // socket.on('disconnect', () => {
+        //     console.log('player disconnected from our game', socket.id);
+        //     delete players[socket.id];
+        //     io.emit('playerDisconnect', socket.id)
+        //     console.log("players left: ", players)
+        // });
 
-    }
 
 
-    create() {
+
+
         this.createMap();
-        //this is used to store var in scene and be able to referecne it in scene
-    
-        // this.otherPlayers = this.physics.add.group();
-
-        //socket
-        this.socket = io("http://localhost:3000");
-        this.socketEvents();
-    
         //allow for keyboard inputs 
         this.createInput();
-        // this.createPlayer();
-
-        this.createGroups();
     }
 
     update() {
         if (this.player) this.player.update(this.cursors);
+
+
         //emit player movement to server
+        if (this.player) {
+            // emit player movement to the server
+            const { x, y } = this.player;
+
+            this.socket.emit('playerMovement', { x, y });
+            // if (this.player.oldPosition && (x !== this.player.oldPosition.x
+            //     || y !== this.player.oldPosition.y)) {
+            //     this.socket.emit('playerMovement', { x, y});
+            // }
+
+
+            // // save old position data
+            // this.player.oldPosition = {
+            //     x: this.player.x,
+            //     y: this.player.y,
+            // };
+        }
 
     }
 
-    // addPlayer1(playerInfo) {
-    //     this.player = this.physics.add.image(playerInfo.x, playerInfo.y, 'ship').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
-    //     if (playerInfo.team === 'blue') {
-    //         this.ship.setTint(0x0000ff);
-    //     } else {
-    //         this.ship.setTint(0xff0000);
-    //     }
-    //     this.ship.setDrag(100);
-    //     this.ship.setAngularDrag(100);
-    //     this.ship.setMaxVelocity(200);
-    // }
+    addPlayer(playerInfo) {
+        console.log("player info", playerInfo)
+        this.player = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id)
+        this.addCollisions();
+    }
 
-    // addPlayer(){ 
-    //     this.player = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id, mainPlayer)
-    //     this.addCollisions();
-    // }
+    addOtherPlayers(playerInfo) {
+        const otherPlayer = this.add.sprite(playerInfo.x, playerInfo.y, 'characters', 4)
+        //const otherPlayer = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id)
+        otherPlayer.playerId = playerInfo.playerId;
+        this.otherPlayers.add(otherPlayer);
+
+    }
 
 
-    // addOtherPlayers(playerInfo) {
-    //     const otherPlayer = this.add.sprite(playerInfo.x, playerInfo.y, 'otherPlayer').setOrigin(0.5, 0.5).setDisplaySize(53, 40);
-    //     if (playerInfo.team === 'blue') {
-    //         otherPlayer.setTint(0x0000ff);
-    //     } else {
-    //         otherPlayer.setTint(0xff0000);
-    //     }
-    //     otherPlayer.playerId = playerInfo.playerId;
-    //     this.otherPlayers.add(otherPlayer);
-    //     //console.log("other Players", this.otherPlayers)
-    // }
-
-    // createPlayer(playerInfo, mainPlayer) {
-
-    //     this.player = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id, mainPlayer)
-    //     this.addCollisions();
-    //     if (!mainPlayer) {
-    //         this.otherPlayers.add(this.player);
-    //         console.log("****OTHER PLAYERS********", this.otherPlayers)
-    //     } else {
-    //         this.player = this.player;
-    //     }
-    // }
 
 
 
@@ -129,7 +126,7 @@ export default class GameScene extends Phaser.Scene {
 
 
     createMap() {
-        console.log("are we reachinghere?")
+
         //create tile map 
         // this.add.image(0, 0, "background")
         this.levelMap = this.make.tilemap({ key: 'map' });

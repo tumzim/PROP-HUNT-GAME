@@ -14,26 +14,38 @@ const players = {};
 
 io.on("connection", (socket) => {
     console.log("player has connected", socket.id)
-    
+
     players[socket.id] = {
         playerId: socket.id,
         x: Math.floor(Math.random() * 700) + 50,
         y: Math.floor(Math.random() * 500) + 50,
-    } 
+    }
 
-    socket.emit('currentPlayers', players); 
-    console.log(players)
+    //when a new player joins
+    socket.emit('currentPlayers', players);
+    console.log("players in lobby", players)
 
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
     // player disconnected
-    // socket.on('disconnect', () => {
-    //     console.log('player disconnected from our game', socket.id);
-    //     delete players[socket.id];
-    //     io.emit('playerDisconnect', socket.id)
-    //     console.log("players left: ", players)
-    // });
+    socket.on('disconnect', () => {
+        console.log('player disconnected from our game', socket.id);
+        delete players[socket.id];
+        io.emit('playerDisconnect', socket.id)
+        console.log("players left: ", players)
+    });
 
+
+    // when a player moves, update the player data 
+    socket.on('playerMovement', (movementData) => {
+    
+        
+        // console.log("movement", movementData)
+        players[socket.id].x = movementData.x;
+        players[socket.id].y = movementData.y;
+        // emit a message to all players about the player that moved
+        socket.broadcast.emit('playerMoved', players[socket.id]);
+    });
 })
 
 
