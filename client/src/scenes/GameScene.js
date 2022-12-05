@@ -21,11 +21,12 @@ export default class GameScene extends Phaser.Scene {
         this.socket = io("http://localhost:3000");
 
 
+        this.createMap();
+        //allow for keyboard inputs 
+        this.createInput();
+
         //other players physics group
         this.otherPlayers = this.physics.add.group();
-
-
-
 
         //new person joins --- spawns 
         this.socket.on('currentPlayers', (players) => {
@@ -34,6 +35,7 @@ export default class GameScene extends Phaser.Scene {
                 // console.log("************socket", this.socket.id)
                 if (players[id].playerId === this.socket.id) {
                     this.addPlayer(players[id])
+
                 } else {
                     this.addOtherPlayers(players[id])
                 }
@@ -44,30 +46,24 @@ export default class GameScene extends Phaser.Scene {
             this.addOtherPlayers(playerInfo);
         });
 
-        // //displays other info 
-        // this.socket.on('playerMoved', (playerInfo) => {
-        //     this.otherPlayers.getChildren().forEach((otherPlayer) => {
-        //         if (playerInfo.playerId === otherPlayer.playerId) {
-        //             otherPlayer.setPosition(playerInfo.x, playerInfo.y);
-        //         }
-        //     });
-        // });
+        //displays other info 
+        this.socket.on('playerMoved', (playerInfo) => {
+            this.otherPlayers.getChildren().forEach((otherPlayer) => {
+                if (playerInfo.playerId === otherPlayer.playerId) {
+                    otherPlayer.setPosition(playerInfo.x, playerInfo.y);
+                }
+            });
+        });
 
-        // // player disconnected
-        // socket.on('disconnect', () => {
-        //     console.log('player disconnected from our game', socket.id);
-        //     delete players[socket.id];
-        //     io.emit('playerDisconnect', socket.id)
-        //     console.log("players left: ", players)
-        // });
-
-
-
-
-
-        this.createMap();
-        //allow for keyboard inputs 
-        this.createInput();
+        // player disconnected
+        this.socket.on('playerDisconnect', (playerId) => {
+            //console.log("disconnect", playerId)
+            this.otherPlayers.getChildren().forEach((otherPlayer) => {
+                if (playerId === otherPlayer.playerId) {
+                    otherPlayer.destroy();
+                }
+            });
+        });
     }
 
     update() {
@@ -80,19 +76,7 @@ export default class GameScene extends Phaser.Scene {
             const { x, y } = this.player;
 
             this.socket.emit('playerMovement', { x, y });
-            // if (this.player.oldPosition && (x !== this.player.oldPosition.x
-            //     || y !== this.player.oldPosition.y)) {
-            //     this.socket.emit('playerMovement', { x, y});
-            // }
-
-
-            // // save old position data
-            // this.player.oldPosition = {
-            //     x: this.player.x,
-            //     y: this.player.y,
-            // };
         }
-
     }
 
     addPlayer(playerInfo) {
@@ -106,7 +90,6 @@ export default class GameScene extends Phaser.Scene {
         //const otherPlayer = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id)
         otherPlayer.playerId = playerInfo.playerId;
         this.otherPlayers.add(otherPlayer);
-
     }
 
 
@@ -121,8 +104,15 @@ export default class GameScene extends Phaser.Scene {
     addCollisions() {
         this.physics.add.collider(this.player, this.blockedLayer)
         // this.physics.add.overlap(this.player, this.chest, this.collectChest, null, this) ----one chest
+        this.physics.add.collider(this.otherPlayers, this.player, this.playerCollider);
+
     }
 
+    playerCollider() {
+        // this.player.body.setVelocity(0);
+        this.otherPlayer.setActive(false).setVisible(false);
+  
+    }
 
 
     createMap() {

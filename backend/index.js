@@ -23,7 +23,7 @@ io.on("connection", (socket) => {
 
     //when a new player joins
     socket.emit('currentPlayers', players);
-    console.log("players in lobby", players)
+    //console.log("players in lobby", players)
 
     socket.broadcast.emit('newPlayer', players[socket.id]);
 
@@ -32,7 +32,7 @@ io.on("connection", (socket) => {
         console.log('player disconnected from our game', socket.id);
         delete players[socket.id];
         io.emit('playerDisconnect', socket.id)
-        console.log("players left: ", players)
+        //console.log("players left: ", players)
     });
 
 
