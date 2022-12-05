@@ -9,28 +9,36 @@ const io = require("socket.io")(server, {
 });
 const port = 3000;
 
-const GameManager = require('./game_manager/GameManager') 
-const gameManager = new GameManager(io);
-gameManager.setup();
+
+const players = {};
+
+io.on("connection", (socket) => {
+    console.log("player has connected", socket.id)
+    
+    players[socket.id] = {
+        playerId: socket.id,
+        x: Math.floor(Math.random() * 700) + 50,
+        y: Math.floor(Math.random() * 500) + 50,
+    } 
+
+    socket.emit('currentPlayers', players); 
+    console.log(players)
+
+    socket.broadcast.emit('newPlayer', players[socket.id]);
+
+    // player disconnected
+    socket.on('disconnect', () => {
+        console.log('player disconnected from our game', socket.id);
+        delete players[socket.id];
+        io.emit('playerDisconnect', socket.id)
+        console.log("players left: ", players)
+    });
+
+})
 
 
-// const players = {};
 
-// io.on("connection", (socket) => {
-//     // player disconnected
-//     socket.on('disconnect', () => {
-//         console.log('player disconnected from our game', socket.id);
-//         //delete this.players(socket.id)
-//         io.emit('disconnectPlayer', socket.id)
-//     });
 
-//     socket.on('newPlayer', (obj) => {
-//         console.log(obj)
-//         console.log('new player event received')
-//         socket.broadcast.emit('newPlayer', socket.id, "everyone but original socket")
-//         io.emit('newPlayer', socket.id, 'everyone')
-//     })
-// })
 
 
 //import routes

@@ -24,16 +24,8 @@ const config = {
 }
 
 
-class Game extends Phaser.Game {
-  constructor(){
-    super(config);
-    // const socket = io("http://localhost:3000");
-    this.scene.start('Boot')
-  }
-}
-
 window.onload = () => {
-  window.game = new Game(config);
+  window.game = new Phaser.Game(config);
 };
 
 

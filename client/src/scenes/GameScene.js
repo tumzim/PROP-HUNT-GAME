@@ -11,12 +11,10 @@ export default class GameScene extends Phaser.Scene {
         this.scene.launch('Ui')
         this.score = 0
         this.scaleSize = 1
-        this.otherplayer = {}
+        
 
         //socket
-        console.log("**********", this.sys);
         this.socket = io("http://localhost:3000");
-        // this.socket = this.sys.game.globals.socket;
         this.socketEvents();
     }
 
@@ -24,35 +22,37 @@ export default class GameScene extends Phaser.Scene {
     socketEvents() {
         //spawn player game objects
         this.socket.on('currentPlayers', (players) => {
-            console.log("currentPlayers",players);
-
-            // console.log("what is this????????????????", Object.keys(players))
+            console.log("currentPlayers", players);
             Object.keys(players).forEach((id) => {
-                console.log("************socket",this.socket)
-                console.log(id)
-                if (players[id].id === this.socket.id) {
-                    this.createPlayer(players[id], true)
-                    this.addCollisions();
+                // console.log("************socket", this.socket.id)
+                if (players[id].playerId === this.socket.id) {
+                    this.createPlayer(players[id])
                 } else {
-                    this.createPlayer(players[id], false)
+                    this.createPlayer(players[id]);
                 }
             })
         })
 
-        this.socket.on('spawnPlayer', (playerId) => {
-            console.log('are weeee being reached!!!!!!!!')
-            console.log("spawnPlayer", playerId);
-            this.createPlayer(playerId, false)
-        })
+        this.socket.on('newPlayer', (playerInfo) => {
+            this.createPlayer(playerInfo, false);
+            console.log("playerInfo", playerInfo)
+        });
 
-        this.socket.on('playerMoved', (player) => {
+        this.socket.on('playerDisconnect', (playerId) => {
+            console.log("disconnect************", playerId)
             this.otherPlayers.getChildren().forEach((otherPlayer) => {
-                if (player.id === otherPlayer.id) {
-                    otherPlayer.setPosition(player.x, player.y)
+                console.log("*********otherplayer",otherPlayer)
+                if (playerId === otherPlayer.playerId) {
+                    otherPlayer.destroy();
                 }
-            })
-        })
+            });
+        });
+
+
+
+
     }
+
 
     create() {
         this.createMap();
@@ -64,46 +64,34 @@ export default class GameScene extends Phaser.Scene {
 
         //allow for keyboard inputs 
         this.createInput();
-        this.createPlayer();
+        // this.createPlayer();
 
         this.createGroups();
-        //emit event to server that a new player has joined
-        this.socket.emit('newPlayer')
-
     }
 
     update() {
         if (this.player) this.player.update(this.cursors);
         //emit player movement to server
-        if (this.player) {
-            const { x, y } = this.player;
-            if (this.player.oldPosition && (x !== this.player.oldPosition.x || y !== this.player.oldPosition.y)) {
-                this.socket.emit('playerMovement', { x, y })
-            }
-            //save old position data 
-            this.player.oldPosition = {
-                x: this.player.x,
-                y: this.player.y
-            }
-        }
+     
     }
 
-    createPlayer(playerId, mainPlayer) {
-        this.player = new Player(this, 300, 200, 'characters', 4, playerId ,mainPlayer)
+    createPlayer(playerInfo, mainPlayer) {
+        console.log("*************player info in create", playerInfo)
+        this.player = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id, mainPlayer)
         this.addCollisions();
-        if (!mainPlayer) {
-            this.otherPlayers.add(this.player);
+        if (mainPlayer) {
+            this.player = this.player;
         } else {
-            this.player = this.player
+            this.otherPlayers.add(this.player);
+            console.log("****OTHER PLAYERS********",this.otherPlayers)
+
         }
     }
 
     createGroups() {
         //create other users group
-
         this.otherPlayers = this.physics.add.group();
-        // console.log(this.otherPlayers)
-        // console.log("otherPlayers**************",this.otherPlayers)
+
     }
 
 

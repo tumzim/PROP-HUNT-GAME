@@ -1,0 +1,26 @@
+
+        this.socket.on('playerMoved', (player) => {
+            this.otherPlayers.getChildren().forEach((otherPlayer) => {
+                if (player.id === otherPlayer.id) {
+                    otherPlayer.setPosition(player.x, player.y)
+                }
+            })
+        })
+
+
+
+
+
+            createPlayer(playerInfo, mainPlayer) {
+        console.log("*************player info in create", playerInfo)
+        this.player = new Player(this, playerInfo.x, playerInfo.y, 'characters', 4, playerInfo.id, mainPlayer)
+        this.addCollisions();
+        if (!mainPlayer) {
+            this.otherPlayers.add(this.player);
+            console.log("****OTHER PLAYERS********",this.otherPlayers)
+        } else {
+            this.player = this.player;
+           
+
+        }
+    }
